@@ -3,12 +3,13 @@
     let player = document.getElementById('player');
     let gameContainer = document.getElementById('gameContainer');
     let coordinates = document.getElementById('coordinates');
+    let gameStats = document.getElementById('gameStats');
     
     // 게임 설정
-    const gameWidth = 800;
-    const gameHeight = 600;
-    const playerSize = 30;
-    const groundHeight = 60;
+    const gameWidth = window.innerWidth;
+    const gameHeight = window.innerHeight;
+    const playerSize = 40;
+    const groundHeight = 80;
     
     // 플레이어 상태
     let playerX = 100;
@@ -17,17 +18,26 @@
     let velocityY = 0;
     
     // 게임 설정 (구글 시트에서 가져올 값들)
-    let moveSpeed = 5;
-    let jumpPower = 12;
-    let gravity = 0.5;
+    let moveSpeed = 7;
+    let jumpPower = 15;
+    let gravity = 0.6;
     let friction = 0.8;
     let airResistance = 0.95;
+    let bulletSpeed = 10;
+    let fireRate = 300; // 밀리초
+    
+    // 주사위 관련 변수
+    let diceArray = [];
+    let diceShot = 0;
+    let totalDamage = 0;
+    let lastFireTime = 0;
     
     // 입력 상태
     let keys = {
         left: false,
         right: false,
-        jump: false
+        jump: false,
+        shoot: false
     };
     
     let isOnGround = false;
@@ -36,25 +46,110 @@
     function gameLoop() {
         handleInput();
         updatePhysics();
+        updateDice();
         updatePlayerPosition();
+        updateUI();
         requestAnimationFrame(gameLoop);
     }
     
     // 입력 처리
-    function handleInput() {
-        // 좌우 이동
-        if (keys.left) {
-            velocityX -= moveSpeed * 0.1;
+function handleInput() {
+    // 좌우 이동
+    if (keys.left) {
+        velocityX -= moveSpeed * 0.1;
+    }
+    if (keys.right) {
+        velocityX += moveSpeed * 0.1;
+    }
+    
+    // 점프 (땅에 있을 때만)
+    if (keys.jump && isOnGround) {
+        velocityY = -jumpPower;
+        isOnGround = false;
+    }
+    
+    // 주사위 발사
+    if (keys.shoot) {
+        fireDice();
+    }
+} // handleInput 함수 끝
+
+// 주사위 눈 생성 함수
+function createDiceFace(value) {
+    let dotsHTML = '';
+    for (let i = 0; i < value; i++) {
+        dotsHTML += '<div class="dice-dot"></div>';
+    }
+    return dotsHTML;
+}
+
+// 주사위 발사 함수
+function fireDice() {
+    const currentTime = Date.now();
+    if (currentTime - lastFireTime < fireRate) return;
+    
+    lastFireTime = currentTime;
+    diceShot++;
+    
+    // 주사위 생성
+    const dice = {
+        element: document.createElement('div'),
+        x: playerX + playerSize / 2,
+        y: playerY + playerSize / 2,
+        velocityX: bulletSpeed,
+        velocityY: 0,
+        value: Math.floor(Math.random() * 6) + 1,
+        life: 300
+    };
+    
+    // 주사위 요소 설정
+    dice.element.className = `dice dice-face-${dice.value}`;
+    dice.element.innerHTML = createDiceFace(dice.value);
+    dice.element.style.left = dice.x + 'px';
+    dice.element.style.top = dice.y + 'px';
+    
+    gameContainer.appendChild(dice.element);
+    diceArray.push(dice);
+    
+    totalDamage += dice.value;
+}
+    
+    // 주사위 업데이트
+    function updateDice() {
+        for (let i = diceArray.length - 1; i >= 0; i--) {
+            const dice = diceArray[i];
+            
+            // 주사위 이동
+            // 주사위 이동
+dice.x += dice.velocityX;
+dice.y += dice.velocityY;
+// 중력 효과 제거 (주석 처리하거나 삭제)
+
+// 주사위 눈 랜덤 변경 추가
+if (Math.random() < 0.15) { // 15% 확률로 숫자 변경
+    dice.value = Math.floor(Math.random() * 6) + 1;
+    dice.element.className = `dice dice-face-${dice.value}`;
+    dice.element.innerHTML = createDiceFace(dice.value);
+}
+            
+            // 위치 업데이트
+            dice.element.style.left = dice.x + 'px';
+            dice.element.style.top = dice.y + 'px';
+            
+            // 수명 감소
+            dice.life--;
+            
+            // 화면 밖으로 나가거나 수명이 다하면 제거
+            if (dice.x > gameWidth || dice.y > gameHeight || dice.life <= 0) {
+                dice.element.remove();
+                diceArray.splice(i, 1);
+            }
         }
-        if (keys.right) {
-            velocityX += moveSpeed * 0.1;
-        }
-        
-        // 점프 (땅에 있을 때만)
-        if (keys.jump && isOnGround) {
-            velocityY = -jumpPower;
-            isOnGround = false;
-        }
+    }
+    
+    // UI 업데이트
+    function updateUI() {
+        gameStats.textContent = `주사위: ${diceShot}발 | 총 데미지: ${totalDamage}`;
     }
     
     // 물리 엔진
@@ -72,7 +167,7 @@
         
         // 최대 속도 제한
         const maxVelocityX = moveSpeed;
-        const maxVelocityY = 20;
+        const maxVelocityY = 25;
         
         if (velocityX > maxVelocityX) velocityX = maxVelocityX;
         if (velocityX < -maxVelocityX) velocityX = -maxVelocityX;
@@ -137,8 +232,11 @@
                 break;
             case 'w':
             case ' ':
-            case 'spacebar':
                 keys.jump = true;
+                event.preventDefault();
+                break;
+            case 's':
+                keys.shoot = true;
                 event.preventDefault();
                 break;
         }
@@ -158,11 +256,20 @@
                 break;
             case 'w':
             case ' ':
-            case 'spacebar':
                 keys.jump = false;
                 event.preventDefault();
                 break;
+            case 's':
+                keys.shoot = false;
+                event.preventDefault();
+                break;
         }
+    });
+    
+    // 화면 크기 변경 대응
+    window.addEventListener('resize', function() {
+        gameWidth = window.innerWidth;
+        gameHeight = window.innerHeight;
     });
     
     // 구글 시트 연동 함수들
@@ -206,6 +313,13 @@
                 playerY = gameHeight - groundHeight - playerSize;
                 velocityX = 0;
                 velocityY = 0;
+                diceShot = 0;
+                totalDamage = 0;
+                
+                // 모든 주사위 제거
+                diceArray.forEach(dice => dice.element.remove());
+                diceArray = [];
+                
                 updatePlayerPosition();
                 alert('게임이 초기화되었습니다!');
             })
