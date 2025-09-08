@@ -34,11 +34,15 @@
     
     // 입력 상태
     let keys = {
-        left: false,
-        right: false,
-        jump: false,
-        shoot: false
-    };
+    left: false,
+    right: false,
+    jump: false,
+    shoot: false,
+    arrowLeft: false,
+    arrowRight: false,
+    arrowUp: false,
+    arrowDown: false
+};
     
     let isOnGround = false;
     
@@ -53,8 +57,8 @@
     }
     
     // 입력 처리
-function handleInput() {
-    // 좌우 이동
+    function handleInput() {
+    // 좌우 이동 (A, D키만)
     if (keys.left) {
         velocityX -= moveSpeed * 0.1;
     }
@@ -68,23 +72,40 @@ function handleInput() {
         isOnGround = false;
     }
     
-    // 주사위 발사
+    // 주사위 발사 (S키)
     if (keys.shoot) {
-        fireDice();
+        fireDice(); // 기본 우측 발사
     }
-} // handleInput 함수 끝
-
-// 주사위 눈 생성 함수
-function createDiceFace(value) {
-    let dotsHTML = '';
-    for (let i = 0; i < value; i++) {
-        dotsHTML += '<div class="dice-dot"></div>';
+    
+    // 화살표키로 방향 발사
+    if (keys.arrowLeft) {
+        fireDice(-1, 0); // 왼쪽
     }
-    return dotsHTML;
+    if (keys.arrowRight) {
+        fireDice(1, 0); // 오른쪽
+    }
+    if (keys.arrowUp) {
+        fireDice(0, -1); // 위쪽
+    }
+    if (keys.arrowDown) {
+        fireDice(0, 1); // 아래쪽
+    }
 }
 
-// 주사위 발사 함수
-function fireDice() {
+    // 주사위 눈 생성 함수 - 개선된 버전
+    function createDiceFace(value) {
+        let dotsHTML = '';
+        
+        // 주사위 눈에 따라 점 생성
+        for (let i = 0; i < value; i++) {
+            dotsHTML += '<div class="dice-dot"></div>';
+        }
+        
+        return dotsHTML;
+    }
+
+    // 주사위 발사 함수
+    function fireDice(directionX = 1, directionY = 0) {
     const currentTime = Date.now();
     if (currentTime - lastFireTime < fireRate) return;
     
@@ -96,23 +117,24 @@ function fireDice() {
         element: document.createElement('div'),
         x: playerX + playerSize / 2,
         y: playerY + playerSize / 2,
-        velocityX: bulletSpeed,
-        velocityY: 0,
+        velocityX: bulletSpeed * directionX,
+        velocityY: bulletSpeed * directionY,
         value: Math.floor(Math.random() * 6) + 1,
-        life: 300
+        life: 300,
+        rollCounter: 0
     };
-    
-    // 주사위 요소 설정
-    dice.element.className = `dice dice-face-${dice.value}`;
-    dice.element.innerHTML = createDiceFace(dice.value);
-    dice.element.style.left = dice.x + 'px';
-    dice.element.style.top = dice.y + 'px';
-    
-    gameContainer.appendChild(dice.element);
-    diceArray.push(dice);
-    
-    totalDamage += dice.value;
-}
+        
+        // 주사위 요소 설정
+        dice.element.className = `dice dice-face-${dice.value}`;
+        dice.element.innerHTML = createDiceFace(dice.value);
+        dice.element.style.left = dice.x + 'px';
+        dice.element.style.top = dice.y + 'px';
+        
+        gameContainer.appendChild(dice.element);
+        diceArray.push(dice);
+        
+        totalDamage += dice.value;
+    }
     
     // 주사위 업데이트
     function updateDice() {
@@ -120,17 +142,24 @@ function fireDice() {
             const dice = diceArray[i];
             
             // 주사위 이동
-            // 주사위 이동
-dice.x += dice.velocityX;
-dice.y += dice.velocityY;
-// 중력 효과 제거 (주석 처리하거나 삭제)
-
-// 주사위 눈 랜덤 변경 추가
-if (Math.random() < 0.15) { // 15% 확률로 숫자 변경
-    dice.value = Math.floor(Math.random() * 6) + 1;
-    dice.element.className = `dice dice-face-${dice.value}`;
-    dice.element.innerHTML = createDiceFace(dice.value);
-}
+            dice.x += dice.velocityX;
+            dice.y += dice.velocityY;
+            
+            // 주사위 눈 랜덤 변경 (더 안정적으로)
+            dice.rollCounter++;
+            if (dice.rollCounter % 40 === 0) { // 20프레임마다 변경 (더 천천히)
+                const oldValue = dice.value;
+                dice.value = Math.floor(Math.random() * 6) + 1;
+                
+                // 값이 바뀌었을 때만 업데이트
+                if (oldValue !== dice.value) {
+                    dice.element.className = `dice dice-face-${dice.value}`;
+                    dice.element.innerHTML = createDiceFace(dice.value);
+                    
+                    // 총 데미지 업데이트 (이전 값 빼고 새 값 더하기)
+                    totalDamage = totalDamage - oldValue + dice.value;
+                }
+            }
             
             // 위치 업데이트
             dice.element.style.left = dice.x + 'px';
@@ -219,52 +248,80 @@ if (Math.random() < 0.15) { // 15% 확률로 숫자 변경
     
     // 키보드 이벤트 처리
     document.addEventListener('keydown', function(event) {
-        switch(event.key.toLowerCase()) {
-            case 'a':
-            case 'arrowleft':
-                keys.left = true;
-                event.preventDefault();
-                break;
-            case 'd':
-            case 'arrowright':
-                keys.right = true;
-                event.preventDefault();
-                break;
-            case 'w':
-            case ' ':
-                keys.jump = true;
-                event.preventDefault();
-                break;
-            case 's':
-                keys.shoot = true;
-                event.preventDefault();
-                break;
-        }
-    });
+    switch(event.key.toLowerCase()) {
+        case 'a':
+            keys.left = true;
+            event.preventDefault();
+            break;
+        case 'd':
+            keys.right = true;
+            event.preventDefault();
+            break;
+        case 'w':
+        case ' ':
+            keys.jump = true;
+            event.preventDefault();
+            break;
+        case 's':
+            keys.shoot = true;
+            event.preventDefault();
+            break;
+        case 'arrowleft':
+            keys.arrowLeft = true;
+            event.preventDefault();
+            break;
+        case 'arrowright':
+            keys.arrowRight = true;
+            event.preventDefault();
+            break;
+        case 'arrowup':
+            keys.arrowUp = true;
+            event.preventDefault();
+            break;
+        case 'arrowdown':
+            keys.arrowDown = true;
+            event.preventDefault();
+            break;
+    }
+});
     
     document.addEventListener('keyup', function(event) {
-        switch(event.key.toLowerCase()) {
-            case 'a':
-            case 'arrowleft':
-                keys.left = false;
-                event.preventDefault();
-                break;
-            case 'd':
-            case 'arrowright':
-                keys.right = false;
-                event.preventDefault();
-                break;
-            case 'w':
-            case ' ':
-                keys.jump = false;
-                event.preventDefault();
-                break;
-            case 's':
-                keys.shoot = false;
-                event.preventDefault();
-                break;
-        }
-    });
+    switch(event.key.toLowerCase()) {
+        case 'a':
+            keys.left = false;
+            event.preventDefault();
+            break;
+        case 'd':
+            keys.right = false;
+            event.preventDefault();
+            break;
+        case 'w':
+        case ' ':
+            keys.jump = false;
+            event.preventDefault();
+            break;
+        case 's':
+            keys.shoot = false;
+            event.preventDefault();
+            break;
+        case 'arrowleft':
+            keys.arrowLeft = false;
+            event.preventDefault();
+            break;
+        case 'arrowright':
+            keys.arrowRight = false;
+            event.preventDefault();
+            break;
+        case 'arrowup':
+            keys.arrowUp = false;
+            event.preventDefault();
+            break;
+        case 'arrowdown':
+            keys.arrowDown = false;
+            event.preventDefault();
+            break;
+    }
+});
     
     // 화면 크기 변경 대응
     window.addEventListener('resize', function() {
