@@ -1,0 +1,244 @@
+<script>
+    // 게임 요소들
+    let player = document.getElementById('player');
+    let gameContainer = document.getElementById('gameContainer');
+    let coordinates = document.getElementById('coordinates');
+    
+    // 게임 설정
+    const gameWidth = 800;
+    const gameHeight = 600;
+    const playerSize = 30;
+    const groundHeight = 60;
+    
+    // 플레이어 상태
+    let playerX = 100;
+    let playerY = gameHeight - groundHeight - playerSize;
+    let velocityX = 0;
+    let velocityY = 0;
+    
+    // 게임 설정 (구글 시트에서 가져올 값들)
+    let moveSpeed = 5;
+    let jumpPower = 12;
+    let gravity = 0.5;
+    let friction = 0.8;
+    let airResistance = 0.95;
+    
+    // 입력 상태
+    let keys = {
+        left: false,
+        right: false,
+        jump: false
+    };
+    
+    let isOnGround = false;
+    
+    // 게임 루프
+    function gameLoop() {
+        handleInput();
+        updatePhysics();
+        updatePlayerPosition();
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // 입력 처리
+    function handleInput() {
+        // 좌우 이동
+        if (keys.left) {
+            velocityX -= moveSpeed * 0.1;
+        }
+        if (keys.right) {
+            velocityX += moveSpeed * 0.1;
+        }
+        
+        // 점프 (땅에 있을 때만)
+        if (keys.jump && isOnGround) {
+            velocityY = -jumpPower;
+            isOnGround = false;
+        }
+    }
+    
+    // 물리 엔진
+    function updatePhysics() {
+        // 중력 적용
+        velocityY += gravity;
+        
+        // 공기 저항
+        if (!isOnGround) {
+            velocityX *= airResistance;
+        } else {
+            // 땅에서의 마찰
+            velocityX *= friction;
+        }
+        
+        // 최대 속도 제한
+        const maxVelocityX = moveSpeed;
+        const maxVelocityY = 20;
+        
+        if (velocityX > maxVelocityX) velocityX = maxVelocityX;
+        if (velocityX < -maxVelocityX) velocityX = -maxVelocityX;
+        if (velocityY > maxVelocityY) velocityY = maxVelocityY;
+        
+        // 위치 업데이트
+        playerX += velocityX;
+        playerY += velocityY;
+        
+        // 경계 충돌 검사
+        checkCollisions();
+    }
+    
+    // 충돌 검사
+    function checkCollisions() {
+        // 좌우 벽 충돌
+        if (playerX < 0) {
+            playerX = 0;
+            velocityX = 0;
+        }
+        if (playerX > gameWidth - playerSize) {
+            playerX = gameWidth - playerSize;
+            velocityX = 0;
+        }
+        
+        // 땅 충돌
+        const groundY = gameHeight - groundHeight - playerSize;
+        if (playerY >= groundY) {
+            playerY = groundY;
+            velocityY = 0;
+            isOnGround = true;
+        } else {
+            isOnGround = false;
+        }
+        
+        // 천장 충돌
+        if (playerY < 0) {
+            playerY = 0;
+            velocityY = 0;
+        }
+    }
+    
+    // 플레이어 위치 업데이트
+    function updatePlayerPosition() {
+        player.style.left = Math.round(playerX) + 'px';
+        player.style.top = Math.round(playerY) + 'px';
+        coordinates.textContent = `X: ${Math.round(playerX)}, Y: ${Math.round(playerY)}`;
+    }
+    
+    // 키보드 이벤트 처리
+    document.addEventListener('keydown', function(event) {
+        switch(event.key.toLowerCase()) {
+            case 'a':
+            case 'arrowleft':
+                keys.left = true;
+                event.preventDefault();
+                break;
+            case 'd':
+            case 'arrowright':
+                keys.right = true;
+                event.preventDefault();
+                break;
+            case 'w':
+            case ' ':
+            case 'spacebar':
+                keys.jump = true;
+                event.preventDefault();
+                break;
+        }
+    });
+    
+    document.addEventListener('keyup', function(event) {
+        switch(event.key.toLowerCase()) {
+            case 'a':
+            case 'arrowleft':
+                keys.left = false;
+                event.preventDefault();
+                break;
+            case 'd':
+            case 'arrowright':
+                keys.right = false;
+                event.preventDefault();
+                break;
+            case 'w':
+            case ' ':
+            case 'spacebar':
+                keys.jump = false;
+                event.preventDefault();
+                break;
+        }
+    });
+    
+    // 구글 시트 연동 함수들
+    function loadPosition() {
+        google.script.run
+            .withSuccessHandler(function(data) {
+                playerX = data.playerX;
+                playerY = data.playerY;
+                moveSpeed = data.moveSpeed;
+                jumpPower = data.jumpPower;
+                gravity = data.gravity;
+                
+                // 속도 초기화
+                velocityX = 0;
+                velocityY = 0;
+                
+                updatePlayerPosition();
+                alert('데이터를 불러왔습니다!');
+            })
+            .withFailureHandler(function(error) {
+                alert('데이터를 불러오는데 실패했습니다: ' + error);
+            })
+            .getGameData();
+    }
+    
+    function savePosition() {
+        google.script.run
+            .withSuccessHandler(function(result) {
+                alert('위치가 저장되었습니다!');
+            })
+            .withFailureHandler(function(error) {
+                alert('저장에 실패했습니다: ' + error);
+            })
+            .saveGameData(Math.round(playerX), Math.round(playerY));
+    }
+    
+    function resetPosition() {
+        google.script.run
+            .withSuccessHandler(function(result) {
+                playerX = 100;
+                playerY = gameHeight - groundHeight - playerSize;
+                velocityX = 0;
+                velocityY = 0;
+                updatePlayerPosition();
+                alert('게임이 초기화되었습니다!');
+            })
+            .withFailureHandler(function(error) {
+                alert('초기화에 실패했습니다: ' + error);
+            })
+            .resetGame();
+    }
+    
+    // 게임 시작
+    function startGame() {
+        updatePlayerPosition();
+        gameLoop();
+    }
+    
+    // 페이지 로드 시 초기화
+    window.onload = function() {
+        // 게임 설정 로드
+        google.script.run
+            .withSuccessHandler(function(data) {
+                if (data) {
+                    moveSpeed = data.moveSpeed || moveSpeed;
+                    jumpPower = data.jumpPower || jumpPower;
+                    gravity = data.gravity || gravity;
+                    bulletSpeed = data.bulletSpeed || bulletSpeed;
+                    fireRate = data.fireRate || fireRate;
+                }
+                startGame();
+            })
+            .withFailureHandler(function(error) {
+                console.log('설정을 불러오는데 실패했지만 기본값으로 시작합니다.');
+                startGame();
+            })
+            .getGameSettings();
+    };
+</script>
