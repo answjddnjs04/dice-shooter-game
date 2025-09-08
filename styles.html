@@ -20,16 +20,21 @@
 }
     
     #player {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-        background: radial-gradient(circle, #FFD700, #FFA500);
-        border-radius: 50%;
-        border: 3px solid #FF8C00;
-        z-index: 10; /* 튜토리얼보다 높아서 앞에 나타남 */
-        transition: none;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-    }
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    z-index: 10;
+    transition: none;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    
+    /* 여기에 background-image 추가 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAH50lEQVR4nO2bb2wT9xnHPyaj2EkW5qurDOdCoBdYN8XFmWnS4mXJgiaE1q4pVEJTG7ERMU3VoNLyquqLjhfTXkXTirS220Cl2bRSiSyr1CEmBaVNjQjEiyPzZmm8kHEYsh62yhLbjMHtxeV3OSdORte7C9PyfRP/7n5393ue3/Pn+zx38XAfQJLKdfE7k8l53Hy2qw8rhYYaSQdI5wvmMTeVsMatB5WCEB4MoTOZnCfo87q6hhVVgMClq5kVs8T7QgEric+t5MOtfg/FLuEWVsT0rFHfiqDPa7pDQ42ku+EarlqAEFyW/ezoKkPZ5gMgNZbn3LE73L2RR5LKdTcDoWsKkKRyXZb9bPZXsGFPAWWbj6bG9rmzZ6Erz7W+AGuys6hq1q1luRsEd3SVAZg7b4U4Jua4xQVcsQCx+wAb9hQAQ9gLo2eL5hnnDBcBdDeUYKsClgpuAFvDAZRtBVJjeVJj+UVWkBrLA4YlaGEvqppd8n52KsZ2C3ipr9b8LYKbqma5PZUHPCXNH4rdwpi7OFgC/HTPFVvXa7uJWSN956uVgKGIa31evnbEYwa+heZvPf7hK7oZKAF6D8+YgdFut3DMxxYqwmriQtjfvfkeAN/57rcAQ3jrPCcFF3A8yIgAuDUcIBDJ0rW+jOGRhxi8eYtDR3dw9NA5ANqq1tG8/WOOfXIHLe5nPKGhqlnHs4HjWWBOAN0Igj4ijSEizwAv/23ODby0Va3jhZ9sBDYyOJpEi+OK8OAiERpPaDRTyQtvXjB8+1nD74c5R/7ZT+gZTZrZYTyhubUsdxQgrGD4eIBAJG/6eVMjBCJZUmPzc4ePe1HVK64RIdeKoYV1gBb303zA4AVa3E8gkjVTphVOK8JVKtz+5BZUNYsWN1hh7+EZzh27A4AW96OqWdqf3AJAS0imc/fjNNRI+nIE67PCcRcotfjxhEbnq5Ucavw2YKS/3sMzRXM6ohEUuZK9UYVTsRQDgwk9nS/YbhFldt7MCkkq1xXp8z/u+OZ21vvgX//4J5mbt6mq8qGqWR6Yrcaz4SOuXp9k+LiXsZGryLKfG9dz3LxZYNf2R5CqHgDgKxslHnl4I38a+Qv5/O0jdq7TEQtoqJH0nW1h9kYVAFJqNf3EGUqq5pzxhEZgrGzut7H7wv+DPi+JqWkAFLmSnpPvA4ZbDCVVW4sk2xUgSeV69/5dKHLlonMtIZnUhEY6X5gTNgAUC67UG8cuq4ayek6cYc2DPjb7K1hb56MFe5XgSC3QEpIB6N7XSkqdITE1bQoEFFmCFeI6AaGslpDM2jofgYihqHeOaLbFAluzgAh4k9lZAH74+h8XCQ+GoFZhF44BNsnz48nsLIFIdslK8rPA9jTYEpLZGg6wts5Y7MBgYsm5QZ+XUv2/TbJMuK7aHFu5gbLNR0tIXrb38GngCA9oPlDc7u6IRop2VECpD6DUB8zzm2SZjmiEcF01PSfOsFTaE50jO2C7AkTN33zACHTpfIGeE2cI11UvEjQ1oZGa0OiPxQnXVbM3qqDIlfTH4kXCZzI5zztHnKkPbM8CotYXfD+TyXmCNV69Pxane18rilxJSp2hPxY3I35HNEJiarpkvBAQPUUo3VT9b2GbAqzR/8LoWa71zft2Ol+ACY2ek+8XuUJqwtjVfuIljy8FoVw7YKsFbNhTMLs6Q8nFqSo1oTGZnWWzv2LRtUvtPBjKFe3ypsZ2PnxlwLY1O8IErSYq3vQo9QFSExp3b+S5FQyx76t+Gr53HoBL4xFO/jlLOp3k7o3i3ZWkcv33k/uLjg0lVdt4gGPFkCz7yWRyAKavi7+T6SQ/S8P3v14DwC8/+ADAFF6pD8CEBhI6wKGWdzk6NF842QlHguCF0bNFubsjGqE/FjfH3wh9yUx1AN37dxnnLa6h1AdIzzHGHV1lpuB2+j/YnAZF4Jt/52egPxanIxoB5klOqVphufsKwe2kwWCjBWQyOc9QUtV/NDcWr7dgnvuLGh/gVCxlXqvIlWyS5aJA2BGNmL4+lFR1kvPPsWvN4GAMED77zOYTBH1eg/BY0p2VIp+KpUzqe1lVF7mMk20xW28sSeX6S321NDW207r+NR59tAZVzRbx/YVfhYBRE/zi5b0AJkkSVuN0T9Dum5sFyq1CnnVeIx1KUvkiJWQyOY+1oOnc/ThgWIAgQk60wBbCThfQv1y3lhefk3ns4YcAiP+6iYt//Zif/1bl0lSOp1u30hGN0P36H4Di3e09fV4HSlaHTsLWGDDy9gEAet7KsyaU4O/eg3Q+NULnU1DxxBsm518KbgsPNiug4ok3ADj9m18tOgaYef9+gp08wAPzwgdra7kYGzLHDTUSUDoICljPiVaYk+8EwP5+gGf38wf54pYGviA9CMDu5w/y4nPt7GwLs7MtvKyZ9/zgaYMBzgkvyJOTcIQHBGuNr0Qei7bAa2/d83WJqWkjSO5rBTDb4U7C9S9Fl0ttA4MJBoCdbWHA3qpvKTiigPSVK6YLWLFczZ/J5DxI6EGfd9lGqt1w1AIuxoaKxsvtqAh2Sn3ApMuXVdX2N0EL4UhX+PpHl4rGvafP03v6/H8056DPW9QaK9VJthtOaVa3UOF7eoboHFnfKZ6KpYQV/M99JKVPp1Wqg/I9P0O4QKk06WRN4GSE1T/t/Ut9Ke50QbTi/zS1EAuZn9v/RbaKVaxiFatYxSpW8X+DfwNl4pst0ZmFsAAAAABJRU5ErkJggg==);
+    background-size: 64px 64px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
     
     #ground {
     position: absolute;
@@ -310,6 +315,34 @@
     height: 2px;
     background: #654321;
     box-shadow: 0 8px 0 #654321, 0 16px 0 #654321;
+}
+/* 슬라임 몬스터 스타일 */
+.slime-monster {
+    position: absolute;
+    width: 35px;
+    height: 30px;
+    background: radial-gradient(circle, #00FF88, #00AA66);
+    border: 2px solid #008844;
+    border-radius: 50% 50% 45% 45%;
+    z-index: 5;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    animation: slimeBounce 2s ease-in-out infinite;
+}
+
+.slime-monster::before {
+    content: '●●';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    color: #003322;
+    letter-spacing: 2px;
+}
+
+@keyframes slimeBounce {
+    0%, 100% { transform: scaleY(1) scaleX(1); }
+    50% { transform: scaleY(0.8) scaleX(1.1); }
 }
 
 /* HP 바 스타일 */
@@ -727,5 +760,62 @@
 /* 좌측 포털 파티클 색상 */
 .left-portal + * .portal-particle {
     background: radial-gradient(circle, #FFD700, #FFA500);
+}
+
+/* 플레이어 체력바 스타일 */
+#playerHpBar {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    width: 200px;
+    height: 20px;
+    z-index: 100;
+    background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(50,50,50,0.8));
+    border: 2px solid rgba(255,215,0,0.5);
+    border-radius: 12px;
+    padding: 3px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+}
+
+.hp-bar-container {
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.player-hp-fill {
+    height: 100%;
+    background: linear-gradient(to right, 
+        #ff4444 0%, 
+        #ff8800 30%, 
+        #ffaa00 60%, 
+        #44ff44 100%);
+    transition: width 0.3s ease;
+    border-radius: 6px;
+}
+
+.player-hp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    z-index: 1;
+}
+
+/* 무적 상태 플레이어 깜빡임 효과 */
+.player-invulnerable {
+    animation: invulnerabilityBlink 0.2s infinite;
+}
+
+@keyframes invulnerabilityBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
 }
 </style>
