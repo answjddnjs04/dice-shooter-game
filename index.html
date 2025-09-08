@@ -1,13 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Square Character Game</title>
-    <link rel="stylesheet" href="style.css">
+    <title>점프 게임</title>
+    <?!= include('styles'); ?>
 </head>
 <body>
-    <canvas id="gameCanvas" width="1200" height="800"></canvas>
-    <script src="script.js"></script>
+    <div id="gameContainer">
+        <div id="coordinates">X: 0, Y: 0</div>
+        <div id="gameStats">주사위: 0발 | 총 데미지: 0</div>
+        <div id="gameControls">
+            A/D: 좌우 이동 | W/스페이스: 점프 | S: 주사위 발사 | 화살표키도 사용가능
+        </div>
+        <div id="player"></div>
+        <div id="ground"></div>
+    </div>
+    
+    <div id="controls">
+        <button class="button" onclick="savePosition()">저장</button>
+        <button class="button" onclick="loadPosition()">불러오기</button>
+        <button class="button" onclick="resetPosition()">초기화</button>
+    </div>
+
+    <?!= include('game-script'); ?>
 </body>
 </html>
