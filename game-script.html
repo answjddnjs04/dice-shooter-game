@@ -406,7 +406,7 @@ let maps = {
 };
 
 // 맵 초기화 함수
-function initializeMap(mapName) {
+function initializeMap(mapName, fromPortal = false) {
     currentMap = mapName;
     const mapData = maps[mapName];
     
@@ -415,7 +415,13 @@ function initializeMap(mapName) {
     
     // 플레이어 위치 초기화
     if (mapName === 'tutorial') {
-        playerX = 100; // 튜토리얼 시작 위치
+        if (fromPortal) {
+            // 맵1에서 돌아올 때는 우측 포털 근처에 배치
+            playerX = mapWidth - 300; // 우측 포털 근처
+        } else {
+            // 첫 시작이거나 초기화할 때는 왼쪽에 배치
+            playerX = 100;
+        }
     } else if (mapName === 'stage1') {
         playerX = 100; // stage1 시작 위치
     }
@@ -740,10 +746,10 @@ function moveToNextMap() {
     console.log('nextMap 변수에 저장:', nextMap);
     
     setTimeout(() => {
-        console.log('setTimeout 실행, nextMap:', nextMap);
-        // 맵 전환
-        initializeMap(nextMap);
-        portalEffect.remove();
+    console.log('setTimeout 실행, nextMap:', nextMap);
+    // 맵 전환 (포털을 통해 이동했다는 것을 표시)
+    initializeMap(nextMap, true);
+    portalEffect.remove();
         
         // 메시지 플래그 초기화
         showPortalMessage = false;
