@@ -527,4 +527,205 @@
 #gameControls {
     display: none;
 }
+/* styles.html에 추가할 CSS */
+
+/* 포털 게이트 스타일 */
+.map-portal {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    z-index: 8;
+    filter: brightness(1.3);
+    transition: filter 0.3s ease;
+}
+
+.portal-outer-ring {
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    top: 20px;
+    border: 4px solid #00FFFF;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(0, 255, 255, 0.1) 0%, 
+        rgba(0, 150, 255, 0.2) 50%, 
+        rgba(128, 0, 255, 0.3) 100%);
+    animation: portalRotate 3s linear infinite;
+    box-shadow: 
+        0 0 20px #00FFFF,
+        inset 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.portal-inner-ring {
+    position: absolute;
+    width: 70%;
+    height: 60px;
+    top: 30px;
+    left: 15%;
+    border: 3px solid #FF00FF;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(255, 0, 255, 0.2) 0%, 
+        rgba(128, 0, 255, 0.3) 100%);
+    animation: portalRotate 2s linear infinite reverse;
+    box-shadow: 
+        0 0 15px #FF00FF,
+        inset 0 0 15px rgba(255, 0, 255, 0.2);
+}
+
+.portal-core {
+    position: absolute;
+    width: 40%;
+    height: 35px;
+    top: 42px;
+    left: 30%;
+    background: radial-gradient(circle, 
+        #FFFFFF 0%, 
+        rgba(255, 255, 255, 0.8) 30%,
+        rgba(0, 255, 255, 0.6) 70%,
+        transparent 100%);
+    border-radius: 50%;
+    animation: portalPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+}
+
+.portal-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #00FFFF, #FF00FF);
+    border-radius: 50%;
+    z-index: 7;
+    box-shadow: 0 0 8px currentColor;
+}
+
+/* 포털 메시지 스타일 */
+.portal-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    animation: messageFloat 2s ease-in-out infinite;
+}
+
+.message-content {
+    background: linear-gradient(135deg, 
+        rgba(0, 0, 0, 0.9), 
+        rgba(50, 0, 100, 0.9));
+    border: 2px solid #00FFFF;
+    border-radius: 15px;
+    padding: 20px 30px;
+    text-align: center;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.5),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.message-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    animation: iconSpin 3s linear infinite;
+}
+
+.message-text {
+    color: #00FFFF;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00FFFF;
+    margin: 0;
+}
+
+/* 포털 전환 효과 */
+.portal-transition-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, 
+        transparent 0%, 
+        rgba(0, 255, 255, 0.3) 30%,
+        rgba(128, 0, 255, 0.7) 70%,
+        #000000 100%);
+    z-index: 1000;
+    animation: portalTransition 1s ease-in-out forwards;
+}
+
+/* 포털 애니메이션 */
+@keyframes portalRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes portalPulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes messageFloat {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+    50% { transform: translate(-50%, -50%) translateY(-10px); }
+}
+
+@keyframes iconSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes portalTransition {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* styles.html에 추가할 CSS - 좌측 포털용 */
+
+/* 좌측 포털 차별화 스타일 */
+.left-portal .portal-outer-ring {
+    border-color: #FFD700; /* 골드색 */
+    box-shadow: 
+        0 0 20px #FFD700,
+        inset 0 0 20px rgba(255, 215, 0, 0.2);
+    animation: portalRotate 3s linear infinite reverse; /* 반대 방향 회전 */
+}
+
+.left-portal .portal-inner-ring {
+    border-color: #FFA500; /* 오렌지색 */
+    background: radial-gradient(circle, 
+        rgba(255, 165, 0, 0.2) 0%, 
+        rgba(255, 140, 0, 0.3) 100%);
+    box-shadow: 
+        0 0 15px #FFA500,
+        inset 0 0 15px rgba(255, 165, 0, 0.2);
+    animation: portalRotate 2s linear infinite; /* 정방향 회전 */
+}
+
+.left-portal .portal-core {
+    background: radial-gradient(circle, 
+        #FFFF99 0%, 
+        rgba(255, 255, 153, 0.8) 30%,
+        rgba(255, 215, 0, 0.6) 70%,
+        transparent 100%);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+}
+
+/* 좌측 포털 파티클 색상 */
+.left-portal + * .portal-particle {
+    background: radial-gradient(circle, #FFD700, #FFA500);
+}
 </style>
