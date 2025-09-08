@@ -357,23 +357,32 @@ let maps = {
         hasEnemies: true,
         hasTutorialSigns: true,
         portals: {
-            right: 'stage1', // 우측 포털로 stage1으로 이동
-            left: null       // 좌측 포털 없음
+            right: 'stage1',
+            left: null
         }
     },
     stage1: {
-    name: 'stage1',
-    hasEnemies: true,    // false에서 true로 변경
-    hasTutorialSigns: false,
-    portals: {
-        right: null,      // 우측 포털 없음 (나중에 추가 가능)
-        left: 'tutorial'  // 좌측 포털로 tutorial로 돌아가기
+        name: 'stage1',
+        hasEnemies: true,
+        hasTutorialSigns: false,
+        portals: {
+            right: 'village',
+            left: 'tutorial'
+        }
+    },
+    village: {
+        name: 'village',
+        hasEnemies: false,
+        hasTutorialSigns: false,
+        portals: {
+            right: null,
+            left: 'stage1'
+        }
     }
-}
 };
 
 // 맵 초기화 함수
-function initializeMap(mapName, fromPortal = false) {
+function initializeMap(mapName, fromPortal = false, portalDirection = 'right') {
     currentMap = mapName;
     const mapData = maps[mapName];
     
@@ -381,17 +390,33 @@ function initializeMap(mapName, fromPortal = false) {
     clearMapElements();
     
     // 플레이어 위치 초기화
-    if (mapName === 'tutorial') {
-        if (fromPortal) {
-            // 맵1에서 돌아올 때는 우측 포털 근처에 배치
-            playerX = mapWidth - 300; // 우측 포털 근처
+if (mapName === 'tutorial') {
+    if (fromPortal && portalDirection === 'left') {
+        // stage1 좌측 포털에서 온 경우 우측에 배치
+        playerX = mapWidth - 300;
+    } else {
+        playerX = 100;
+    }
+} else if (mapName === 'stage1') {
+    if (fromPortal) {
+        if (portalDirection === 'left') {
+            // 마을 좌측 포털에서 온 경우 우측에 배치
+            playerX = mapWidth - 300;
         } else {
-            // 첫 시작이거나 초기화할 때는 왼쪽에 배치
+            // 튜토리얼 우측 포털에서 온 경우 좌측에 배치
             playerX = 100;
         }
-    } else if (mapName === 'stage1') {
-        playerX = 100; // stage1 시작 위치
+    } else {
+        playerX = 100;
     }
+} else if (mapName === 'village') {
+    if (fromPortal && portalDirection === 'right') {
+        // stage1 우측 포털에서 온 경우 좌측에 배치
+        playerX = 100;
+    } else {
+        playerX = mapWidth - 300;
+    }
+}
     playerY = screenHeight - groundHeight - playerSize;
     velocityX = 0;
     velocityY = 0;
@@ -498,6 +523,10 @@ if (mapData.hasEnemies) {
     if (mapData.portals.left) {
         createMapPortal('left', mapData.portals.left);
     }
+    // 마을 맵인 경우
+if (mapData.name === 'village') {
+    initializeVillage();
+}
 }
 
 // 포털 생성 함수 수정 (방향과 목적지를 받도록)
@@ -718,15 +747,22 @@ function moveToNextMap() {
     
     setTimeout(() => {
     console.log('setTimeout 실행, nextMap:', nextMap);
-    // 맵 전환 (포털을 통해 이동했다는 것을 표시)
-    initializeMap(nextMap, true);
+    
+    // 어느 포털에서 왔는지 정보 전달
+    let portalDirection = 'right'; // 기본값
+    if (showLeftPortalMessage && leftPortal) {
+        portalDirection = 'left';
+    }
+    
+    // 맵 전환 (포털 방향 정보도 함께 전달)
+    initializeMap(nextMap, true, portalDirection);
     portalEffect.remove();
         
-        // 메시지 플래그 초기화
-        showPortalMessage = false;
-        showLeftPortalMessage = false;
-        console.log('맵 전환 완료');
-    }, 1000);
+    // 메시지 플래그 초기화
+    showPortalMessage = false;
+    showLeftPortalMessage = false;
+    console.log('맵 전환 완료');
+}, 1000);
 }
 
 // startGame 함수 수정
