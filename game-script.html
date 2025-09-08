@@ -177,11 +177,11 @@ let showLeftPortalMessage = false;
         totalDamage += dice.value;
     }
     // 허수아비 생성 함수
-    function createTrainingDummy() {
-        const dummy = {
-            element: document.createElement('div'),
-            x: mapWidth - 200, // 맵의 우측 끝 근처에 배치
-            y: screenHeight - groundHeight - 60,
+function createTrainingDummy() {
+    const dummy = {
+        element: document.createElement('div'),
+        x: mapWidth - 600, // 나무 간판 밑으로 이동 (더 왼쪽으로)
+        y: screenHeight - groundHeight - 60,
             width: 40,
             height: 60,
             maxHp: 1000,
@@ -210,9 +210,10 @@ let showLeftPortalMessage = false;
     // 적 업데이트 함수
 function updateEnemies() {
     enemies.forEach(enemy => {
-        // 카메라 오프셋 적용
+        // 카메라 오프셋 적용하여 화면상 위치 계산
         const screenX = enemy.x - cameraX;
         enemy.element.style.left = screenX + 'px';
+        enemy.element.style.top = enemy.y + 'px'; // Y 위치도 명시적으로 설정
         
         if (enemy.type === 'dummy') {
             const hpFill = enemy.element.querySelector('.hp-bar-fill');
@@ -786,7 +787,7 @@ function createTutorialSigns() {
             arrow: "🎲"
         },
         {
-            x: mapWidth - 500,
+            x: mapWidth - 695,
             y: screenHeight - groundHeight - 200,
             text: "허수아비를\n공격해보세요!",
             arrow: "🎯"
