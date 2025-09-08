@@ -137,115 +137,116 @@
         color: #333333;
         z-index: 5;
         box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-        animation: rollDice 1.0s infinite linear;
-        .dice-dot {
-    width: 3px;
-    height: 3px;
-    background-color: #333;
-    border-radius: 50%;
-    position: absolute;
-}
+        animation: rollDice 3.0s infinite linear;
+    }
 
-/* 주사위 1 */
-.dice-face-1 .dice-dot {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+    .dice-dot {
+        width: 3px;
+        height: 3px;
+        background-color: #333;
+        border-radius: 50%;
+        position: absolute;
+    }
 
-/* 주사위 2 */
-.dice-face-2 .dice-dot:nth-child(1) {
-    top: 25%;
-    left: 25%;
-}
-.dice-face-2 .dice-dot:nth-child(2) {
-    bottom: 25%;
-    right: 25%;
-}
+    /* 주사위 1 */
+    .dice-face-1 .dice-dot {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-/* 주사위 3 */
-.dice-face-3 .dice-dot:nth-child(1) {
-    top: 25%;
-    left: 25%;
-}
-.dice-face-3 .dice-dot:nth-child(2) {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-.dice-face-3 .dice-dot:nth-child(3) {
-    bottom: 25%;
-    right: 25%;
-}
+    /* 주사위 2 */
+    .dice-face-2 .dice-dot:nth-child(1) {
+        top: 25%;
+        left: 25%;
+    }
+    .dice-face-2 .dice-dot:nth-child(2) {
+        bottom: 25%;
+        right: 25%;
+    }
 
-/* 주사위 4 */
-.dice-face-4 .dice-dot:nth-child(1) {
-    top: 25%;
-    left: 25%;
-}
-.dice-face-4 .dice-dot:nth-child(2) {
-    top: 25%;
-    right: 25%;
-}
-.dice-face-4 .dice-dot:nth-child(3) {
-    bottom: 25%;
-    left: 25%;
-}
-.dice-face-4 .dice-dot:nth-child(4) {
-    bottom: 25%;
-    right: 25%;
-}
+    /* 주사위 3 */
+    .dice-face-3 .dice-dot:nth-child(1) {
+        top: 25%;
+        left: 25%;
+    }
+    .dice-face-3 .dice-dot:nth-child(2) {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .dice-face-3 .dice-dot:nth-child(3) {
+        bottom: 25%;
+        right: 25%;
+    }
 
-/* 주사위 5 */
-.dice-face-5 .dice-dot:nth-child(1) {
-    top: 25%;
-    left: 25%;
-}
-.dice-face-5 .dice-dot:nth-child(2) {
-    top: 25%;
-    right: 25%;
-}
-.dice-face-5 .dice-dot:nth-child(3) {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-.dice-face-5 .dice-dot:nth-child(4) {
-    bottom: 25%;
-    left: 25%;
-}
-.dice-face-5 .dice-dot:nth-child(5) {
-    bottom: 25%;
-    right: 25%;
-}
+    /* 주사위 4 */
+    .dice-face-4 .dice-dot:nth-child(1) {
+        top: 25%;
+        left: 25%;
+    }
+    .dice-face-4 .dice-dot:nth-child(2) {
+        top: 25%;
+        right: 25%;
+    }
+    .dice-face-4 .dice-dot:nth-child(3) {
+        bottom: 25%;
+        left: 25%;
+    }
+    .dice-face-4 .dice-dot:nth-child(4) {
+        bottom: 25%;
+        right: 25%;
+    }
 
-/* 주사위 6 */
-.dice-face-6 .dice-dot:nth-child(1) {
-    top: 20%;
-    left: 25%;
-}
-.dice-face-6 .dice-dot:nth-child(2) {
-    top: 20%;
-    right: 25%;
-}
-.dice-face-6 .dice-dot:nth-child(3) {
-    top: 50%;
-    left: 25%;
-    transform: translateY(-50%);
-}
-.dice-face-6 .dice-dot:nth-child(4) {
-    top: 50%;
-    right: 25%;
-    transform: translateY(-50%);
-}
-.dice-face-6 .dice-dot:nth-child(5) {
-    bottom: 20%;
-    left: 25%;
-}
-.dice-face-6 .dice-dot:nth-child(6) {
-    bottom: 20%;
-    right: 25%;
-}
+    /* 주사위 5 */
+    .dice-face-5 .dice-dot:nth-child(1) {
+        top: 25%;
+        left: 25%;
+    }
+    .dice-face-5 .dice-dot:nth-child(2) {
+        top: 25%;
+        right: 25%;
+    }
+    .dice-face-5 .dice-dot:nth-child(3) {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .dice-face-5 .dice-dot:nth-child(4) {
+        bottom: 25%;
+        left: 25%;
+    }
+    .dice-face-5 .dice-dot:nth-child(5) {
+        bottom: 25%;
+        right: 25%;
+    }
+
+    /* 주사위 6 */
+    .dice-face-6 .dice-dot:nth-child(1) {
+        top: 20%;
+        left: 25%;
+    }
+    .dice-face-6 .dice-dot:nth-child(2) {
+        top: 20%;
+        right: 25%;
+    }
+    .dice-face-6 .dice-dot:nth-child(3) {
+        top: 50%;
+        left: 25%;
+        transform: translateY(-50%);
+    }
+    .dice-face-6 .dice-dot:nth-child(4) {
+        top: 50%;
+        right: 25%;
+        transform: translateY(-50%);
+    }
+    .dice-face-6 .dice-dot:nth-child(5) {
+        bottom: 20%;
+        left: 25%;
+    }
+    .dice-face-6 .dice-dot:nth-child(6) {
+        bottom: 20%;
+        right: 25%;
     }
     
     @keyframes rollDice {
