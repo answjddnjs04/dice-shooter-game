@@ -1,0 +1,207 @@
+<script>
+// 몬스터 타입 정의
+const monsterTypes = {
+    dummy: {
+        width: 40,
+        height: 60,
+        maxHp: 1000,
+        speed: 0,
+        damage: 0,
+        className: 'training-dummy',
+        behavior: 'static'
+    },
+    slime: {
+        width: 35,
+        height: 30,
+        maxHp: 100,
+        speed: 1,
+        damage: 10,
+        className: 'slime-monster',
+        behavior: 'bounce'
+    }
+};
+
+// 허수아비 생성 함수
+function createTrainingDummy() {
+    const dummy = {
+        element: document.createElement('div'),
+        x: mapWidth - 600,
+        y: screenHeight - groundHeight - 60,
+        width: 40,
+        height: 60,
+        maxHp: 1000,
+        currentHp: 1000,
+        type: 'dummy'
+    };
+    
+    dummy.element.className = 'training-dummy';
+    dummy.element.style.left = dummy.x + 'px';
+    dummy.element.style.top = dummy.y + 'px';
+    
+    const hpBar = document.createElement('div');
+    hpBar.className = 'enemy-hp-bar';
+    hpBar.innerHTML = `
+        <div class="hp-bar-background">
+            <div class="hp-bar-fill"></div>
+            <div class="hp-bar-text">${dummy.currentHp}/${dummy.maxHp}</div>
+        </div>
+    `;
+    dummy.element.appendChild(hpBar);
+    
+    gameContainer.appendChild(dummy.element);
+    enemies.push(dummy);
+}
+
+// 슬라임 생성 함수
+function createSlime(x, y) {
+    const slimeType = monsterTypes.slime;
+    const slime = {
+        element: document.createElement('div'),
+        x: x,
+        y: y,
+        width: slimeType.width,
+        height: slimeType.height,
+        maxHp: slimeType.maxHp,
+        currentHp: slimeType.maxHp,
+        speed: slimeType.speed,
+        damage: slimeType.damage,
+        type: 'slime',
+        direction: 1, // 1: 오른쪽, -1: 왼쪽
+        bounceTimer: 0,
+        bounceHeight: 0
+    };
+    
+    slime.element.className = 'slime-monster';
+    slime.element.style.left = slime.x + 'px';
+    slime.element.style.top = slime.y + 'px';
+    
+    // HP바 추가
+    const hpBar = document.createElement('div');
+    hpBar.className = 'enemy-hp-bar';
+    hpBar.innerHTML = `
+        <div class="hp-bar-background">
+            <div class="hp-bar-fill"></div>
+            <div class="hp-bar-text">${slime.currentHp}/${slime.maxHp}</div>
+        </div>
+    `;
+    slime.element.appendChild(hpBar);
+    
+    gameContainer.appendChild(slime.element);
+    enemies.push(slime);
+}
+
+// 몬스터 AI 업데이트
+function updateMonsterAI(monster) {
+    if (monster.type === 'slime') {
+        // 슬라임 바운스 움직임
+        monster.bounceTimer += 0.1;
+        monster.bounceHeight = Math.sin(monster.bounceTimer) * 10;
+        
+        // 좌우 이동
+        monster.x += monster.speed * monster.direction;
+        
+        // 맵 경계에서 방향 전환
+        if (monster.x <= 50 || monster.x >= mapWidth - 100) {
+            monster.direction *= -1;
+        }
+        
+        // Y 위치 (바운스 효과)
+        const baseY = screenHeight - groundHeight - monster.height;
+        monster.y = baseY + monster.bounceHeight;
+    }
+}
+
+// 적 업데이트 함수 (수정됨)
+function updateEnemies() {
+    enemies.forEach(enemy => {
+        // 몬스터 AI 실행
+        if (enemy.type === 'slime') {
+            updateMonsterAI(enemy);
+        }
+        
+        // 카메라 오프셋 적용하여 화면상 위치 계산
+        const screenX = enemy.x - cameraX;
+        enemy.element.style.left = screenX + 'px';
+        enemy.element.style.top = enemy.y + 'px';
+        
+        // HP바 업데이트
+        const hpFill = enemy.element.querySelector('.hp-bar-fill');
+        const hpText = enemy.element.querySelector('.hp-bar-text');
+        
+        if (hpFill && hpText) {
+            const hpPercent = (enemy.currentHp / enemy.maxHp) * 100;
+            hpFill.style.width = hpPercent + '%';
+            hpText.textContent = `${enemy.currentHp}/${enemy.maxHp}`;
+        }
+        
+        // 몬스터가 죽었는지 확인
+        if (enemy.currentHp <= 0 && enemy.type !== 'dummy') {
+            removeMonster(enemy);
+        }
+    });
+}
+
+// 몬스터 제거 함수
+function removeMonster(monster) {
+    const index = enemies.indexOf(monster);
+    if (index > -1) {
+        monster.element.remove();
+        enemies.splice(index, 1);
+    }
+}
+// 데미지 표시기 생성 (반원 범위)
+function createDamageIndicator(enemyX, enemyY, enemyWidth, diceValue) {
+    // 적의 머리 중앙 위치
+    const headCenterX = enemyX + enemyWidth / 2;
+    const headY = enemyY - 10; // 머리 위쪽
+    
+    // 반원 범위에서 랜덤 위치 계산
+    const radius = 40; // 반원 반지름
+    const angle = Math.random() * Math.PI; // 0 ~ π (반원)
+    
+    const offsetX = Math.cos(angle) * (Math.random() * radius);
+    const offsetY = -Math.sin(angle) * (Math.random() * radius); // 위쪽으로만
+    
+    const indicator = {
+        element: document.createElement('div'),
+        x: headCenterX + offsetX,
+        y: headY + offsetY,
+        life: 150, // 조금 더 짧게
+        diceValue: diceValue
+    };
+    
+    indicator.element.className = 'damage-indicator';
+    indicator.element.textContent = `-${diceValue}`;
+    
+    // 카메라 오프셋 적용된 위치
+    const screenX = indicator.x - cameraX;
+    indicator.element.style.left = screenX + 'px';
+    indicator.element.style.top = indicator.y + 'px';
+    
+    gameContainer.appendChild(indicator.element);
+    damageIndicators.push(indicator);
+}
+
+// 데미지 표시기 업데이트
+function updateDamageIndicators() {
+    for (let i = damageIndicators.length - 1; i >= 0; i--) {
+        const indicator = damageIndicators[i];
+        
+        // 카메라 오프셋 적용
+        const screenX = indicator.x - cameraX;
+        indicator.element.style.left = screenX + 'px';
+        
+        indicator.life--;
+        
+        if (indicator.life < 60) {
+            const opacity = indicator.life / 60;
+            indicator.element.style.opacity = opacity;
+        }
+        
+        if (indicator.life <= 0) {
+            indicator.element.remove();
+            damageIndicators.splice(i, 1);
+        }
+    }
+}
+</script>
