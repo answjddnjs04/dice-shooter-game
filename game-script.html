@@ -45,6 +45,13 @@ let cameraX = 0;
 
     //튜토리얼 변수
     let tutorialSigns = [];
+// 포털 관련 변수들
+let mapPortal = null;
+let leftPortal = null;
+let portalParticles = [];
+let leftPortalParticles = [];
+let showPortalMessage = false;
+let showLeftPortalMessage = false;
 
     // 적 관련 변수 (새로 추가)
     let enemies = [];
@@ -68,12 +75,14 @@ let cameraX = 0;
     handleInput();
     updatePhysics();
     updateDice();
-    updateEnemies();          // 추가
-    updateDamageIndicators(); // 추가
-    checkDiceEnemyCollisions(); // 추가
+    updateEnemies();
+    updateDamageIndicators();
+    checkDiceEnemyCollisions();
     updatePlayerPosition();
-    updateTutorialSigns(); //튜토리얼
+    updateTutorialSigns();
     updateClouds();
+    updatePortal();           // 추가
+    updatePortalParticles();  // 추가
     updateUI();
     requestAnimationFrame(gameLoop);
 }
@@ -382,6 +391,367 @@ function updateClouds() {
         cloud.element.style.left = screenX + 'px';
     });
 }
+// game-script.html에 추가/수정할 코드
+
+// 맵 관련 변수 추가 (기존 변수들과 함께)
+let maps = {
+    tutorial: {
+        name: 'tutorial',
+        hasEnemies: true,
+        hasTutorialSigns: true,
+        portals: {
+            right: 'stage1', // 우측 포털로 stage1으로 이동
+            left: null       // 좌측 포털 없음
+        }
+    },
+    stage1: {
+        name: 'stage1',
+        hasEnemies: false,
+        hasTutorialSigns: false,
+        portals: {
+            right: null,      // 우측 포털 없음 (나중에 추가 가능)
+            left: 'tutorial'  // 좌측 포털로 tutorial로 돌아가기
+        }
+    }
+};
+
+// 맵 초기화 함수
+function initializeMap(mapName) {
+    currentMap = mapName;
+    const mapData = maps[mapName];
+    
+    // 기존 요소들 제거
+    clearMapElements();
+    
+    // 플레이어 위치 초기화
+    if (mapName === 'tutorial') {
+        playerX = 100; // 튜토리얼 시작 위치
+    } else if (mapName === 'stage1') {
+        playerX = 100; // stage1 시작 위치
+    }
+    playerY = screenHeight - groundHeight - playerSize;
+    velocityX = 0;
+    velocityY = 0;
+    
+    // 카메라 위치 초기화
+    cameraX = 0;
+    
+    // 맵별 요소 생성
+    createMapElements(mapData);
+    
+    updatePlayerPosition();
+}
+
+// 맵 요소들 제거 함수
+function clearMapElements() {
+    // 적들 제거
+    enemies.forEach(enemy => {
+        if (enemy.element && enemy.element.parentNode) {
+            enemy.element.remove();
+        }
+    });
+    enemies = [];
+    
+    // 튜토리얼 사인들 제거
+    tutorialSigns.forEach(sign => {
+        if (sign.element && sign.element.parentNode) {
+            sign.element.remove();
+        }
+    });
+    tutorialSigns = [];
+    
+    // 포털들 제거
+    if (mapPortal && mapPortal.element && mapPortal.element.parentNode) {
+        mapPortal.element.remove();
+    }
+    if (leftPortal && leftPortal.element && leftPortal.element.parentNode) {
+        leftPortal.element.remove();
+    }
+    mapPortal = null;
+    leftPortal = null;
+    
+    // 포털 파티클들 제거
+    portalParticles.forEach(particle => {
+        if (particle.element && particle.element.parentNode) {
+            particle.element.remove();
+        }
+    });
+    portalParticles = [];
+    
+    leftPortalParticles.forEach(particle => {
+        if (particle.element && particle.element.parentNode) {
+            particle.element.remove();
+        }
+    });
+    leftPortalParticles = [];
+    
+    // 주사위들 제거
+    diceArray.forEach(dice => {
+        if (dice.element && dice.element.parentNode) {
+            dice.element.remove();
+        }
+    });
+    diceArray = [];
+    
+    // 데미지 인디케이터들 제거
+    damageIndicators.forEach(indicator => {
+        if (indicator.element && indicator.element.parentNode) {
+            indicator.element.remove();
+        }
+    });
+    damageIndicators = [];
+    
+    // 포털 메시지 제거
+    removePortalMessage();
+    
+    // 통계 초기화
+    diceShot = 0;
+    totalDamage = 0;
+}
+
+// 맵 요소들 생성 함수
+function createMapElements(mapData) {
+    // 구름은 모든 맵에 생성
+    createClouds();
+    
+    // 맵별 요소 생성
+    if (mapData.hasEnemies) {
+        createTrainingDummy();
+    }
+    
+    if (mapData.hasTutorialSigns) {
+        createTutorialSigns();
+    }
+    
+    // 포털 생성
+    if (mapData.portals.right) {
+        createMapPortal('right', mapData.portals.right);
+    }
+    
+    if (mapData.portals.left) {
+        createMapPortal('left', mapData.portals.left);
+    }
+}
+
+// 포털 생성 함수 수정 (방향과 목적지를 받도록)
+function createMapPortal(direction = 'right', targetMap = null) {
+    if (!targetMap) return;
+    
+    let portal, particles;
+    
+    if (direction === 'right') {
+        portal = mapPortal = {
+            element: document.createElement('div'),
+            x: mapWidth - 150,
+            y: screenHeight - groundHeight - 120,
+            width: 80,
+            height: 120,
+            active: true,
+            glowIntensity: 0,
+            direction: 'right',
+            targetMap: targetMap
+        };
+        particles = portalParticles;
+    } else {
+        portal = leftPortal = {
+            element: document.createElement('div'),
+            x: 70, // 맵 좌측
+            y: screenHeight - groundHeight - 120,
+            width: 80,
+            height: 120,
+            active: true,
+            glowIntensity: 0,
+            direction: 'left',
+            targetMap: targetMap
+        };
+        particles = leftPortalParticles;
+    }
+    
+    portal.element.className = `map-portal ${direction}-portal`;
+    portal.element.style.left = portal.x + 'px';
+    portal.element.style.top = portal.y + 'px';
+    
+    // 포털 내부 구조
+    portal.element.innerHTML = `
+        <div class="portal-outer-ring"></div>
+        <div class="portal-inner-ring"></div>
+        <div class="portal-core"></div>
+        <div class="portal-particles"></div>
+    `;
+    
+    gameContainer.appendChild(portal.element);
+    
+    // 포털별 파티클 생성
+    createPortalParticlesForPortal(portal, particles);
+}
+
+// 특정 포털용 파티클 생성
+function createPortalParticlesForPortal(portal, particleArray) {
+    for (let i = 0; i < 15; i++) {
+        const particle = {
+            element: document.createElement('div'),
+            x: portal.x + portal.width/2,
+            y: portal.y + portal.height/2,
+            angle: (Math.PI * 2 * i) / 15,
+            radius: Math.random() * 30 + 20,
+            speed: Math.random() * 0.02 + 0.01,
+            opacity: Math.random() * 0.8 + 0.2,
+            portalRef: portal
+        };
+        
+        particle.element.className = 'portal-particle';
+        particle.element.style.opacity = particle.opacity;
+        gameContainer.appendChild(particle.element);
+        particleArray.push(particle);
+    }
+}
+
+// 포털 업데이트 함수 수정
+function updatePortal() {
+    updateSinglePortal(mapPortal, 'showPortalMessage');
+    updateSinglePortal(leftPortal, 'showLeftPortalMessage');
+}
+
+// 단일 포털 업데이트
+function updateSinglePortal(portal, messageFlag) {
+    if (!portal) return;
+    
+    // 카메라 오프셋 적용
+    const screenX = portal.x - cameraX;
+    portal.element.style.left = screenX + 'px';
+    
+    // 포털과 플레이어 거리 계산
+    const portalCenterX = portal.x + portal.width/2;
+    const portalCenterY = portal.y + portal.height/2;
+    const playerCenterX = playerX + playerSize/2;
+    const playerCenterY = playerY + playerSize/2;
+    
+    const distance = Math.sqrt(
+        Math.pow(portalCenterX - playerCenterX, 2) + 
+        Math.pow(portalCenterY - playerCenterY, 2)
+    );
+    
+    // 플레이어가 포털 근처에 있는지 확인 (100px 이내)
+    if (distance < 100) {
+        if (portal.direction === 'right' && !showPortalMessage) {
+            showPortalMessage = true;
+            createPortalMessage(portal.direction, portal.targetMap);
+        } else if (portal.direction === 'left' && !showLeftPortalMessage) {
+            showLeftPortalMessage = true;
+            createPortalMessage(portal.direction, portal.targetMap);
+        }
+        
+        portal.glowIntensity = Math.min(1, portal.glowIntensity + 0.02);
+    } else {
+        if (portal.direction === 'right' && showPortalMessage) {
+            showPortalMessage = false;
+            removePortalMessage();
+        } else if (portal.direction === 'left' && showLeftPortalMessage) {
+            showLeftPortalMessage = true;
+            removePortalMessage();
+        }
+        
+        portal.glowIntensity = Math.max(0.3, portal.glowIntensity - 0.02);
+    }
+    
+    // 포털 글로우 효과 적용
+    portal.element.style.filter = `brightness(${1 + portal.glowIntensity})`;
+}
+
+// 포털 메시지 생성 수정
+function createPortalMessage(direction = 'right', targetMap = '') {
+    if (document.getElementById('portalMessage')) return;
+    
+    const message = document.createElement('div');
+    message.id = 'portalMessage';
+    message.className = 'portal-message';
+    
+    let mapDisplayName = '';
+    if (targetMap === 'tutorial') {
+        mapDisplayName = '튜토리얼 맵';
+    } else if (targetMap === 'stage1') {
+        mapDisplayName = '스테이지 1';
+    }
+    
+    message.innerHTML = `
+        <div class="message-content">
+            <div class="message-icon">🌀</div>
+            <div class="message-text">Z키를 눌러 ${mapDisplayName}으로 이동</div>
+        </div>
+    `;
+    
+    gameContainer.appendChild(message);
+}
+
+// 포털 파티클 업데이트 수정
+function updatePortalParticles() {
+    updateParticleArray(portalParticles);
+    updateParticleArray(leftPortalParticles);
+}
+
+function updateParticleArray(particleArray) {
+    particleArray.forEach(particle => {
+        // 원형 궤도로 회전
+        particle.angle += particle.speed;
+        
+        const portal = particle.portalRef;
+        const centerX = portal.x + portal.width/2;
+        const centerY = portal.y + portal.height/2;
+        
+        particle.x = centerX + Math.cos(particle.angle) * particle.radius;
+        particle.y = centerY + Math.sin(particle.angle) * particle.radius;
+        
+        // 카메라 오프셋 적용
+        const screenX = particle.x - cameraX;
+        particle.element.style.left = screenX + 'px';
+        particle.element.style.top = particle.y + 'px';
+        
+        // 투명도 애니메이션
+        particle.opacity = 0.2 + Math.sin(particle.angle * 3) * 0.3;
+        particle.element.style.opacity = Math.max(0.1, particle.opacity);
+    });
+}
+
+// 다음 맵으로 이동 함수 수정
+function moveToNextMap() {
+    let targetMap = null;
+    
+    // 어느 포털을 사용하는지 확인
+    if (showPortalMessage && mapPortal) {
+        targetMap = mapPortal.targetMap;
+    } else if (showLeftPortalMessage && leftPortal) {
+        targetMap = leftPortal.targetMap;
+    }
+    
+    if (!targetMap) return;
+    
+    // 포털 진입 효과
+    const portalEffect = document.createElement('div');
+    portalEffect.className = 'portal-transition-effect';
+    document.body.appendChild(portalEffect);
+    
+    console.log(`${targetMap} 맵으로 이동!`);
+    
+    // targetMap을 setTimeout 안에서 사용할 수 있도록 저장
+    const nextMap = targetMap;
+    
+    setTimeout(() => {
+        // 맵 전환
+        initializeMap(nextMap);
+        portalEffect.remove();
+        
+        // 메시지 플래그 초기화
+        showPortalMessage = false;
+        showLeftPortalMessage = false;
+    }, 1000);
+}
+
+// startGame 함수 수정
+function startGame() {
+    // 튜토리얼 맵으로 시작
+    initializeMap('tutorial');
+    gameLoop();
+}
 // 튜토리얼 사인 생성 함수
 function createTutorialSigns() {
     const tutorials = [
@@ -565,6 +935,13 @@ const rightBoundary = mapWidth - (screenWidth - followPosition); // 2400px
                 keys.right = true;
                 event.preventDefault();
                 break;
+
+case 'z':
+    if (showPortalMessage || showLeftPortalMessage) {
+        moveToNextMap();
+    }
+    event.preventDefault();
+    break;
             case ' ': //스페이스 바
                 keys.jump = true;
                 event.preventDefault();
@@ -685,15 +1062,209 @@ const rightBoundary = mapWidth - (screenWidth - followPosition); // 2400px
             })
             .resetGame();
     }
+
+    // 포털 생성 함수 수정 (방향과 목적지를 받도록)
+function createMapPortal(direction = 'right', targetMap = null) {
+    if (!targetMap) return;
     
-    // 게임 시작
-    function startGame() {
-        updatePlayerPosition();
-        createTrainingDummy(); // 허수아비 생성
-        gameLoop();
-        createClouds();
-        createTutorialSigns();
+    let portal, particles;
+    
+    if (direction === 'right') {
+        portal = mapPortal = {
+            element: document.createElement('div'),
+            x: mapWidth - 150,
+            y: screenHeight - groundHeight - 120,
+            width: 80,
+            height: 120,
+            active: true,
+            glowIntensity: 0,
+            direction: 'right',
+            targetMap: targetMap
+        };
+        particles = portalParticles;
+    } else {
+        portal = leftPortal = {
+            element: document.createElement('div'),
+            x: 70, // 맵 좌측
+            y: screenHeight - groundHeight - 120,
+            width: 80,
+            height: 120,
+            active: true,
+            glowIntensity: 0,
+            direction: 'left',
+            targetMap: targetMap
+        };
+        particles = leftPortalParticles;
     }
+    
+    portal.element.className = `map-portal ${direction}-portal`;
+    portal.element.style.left = portal.x + 'px';
+    portal.element.style.top = portal.y + 'px';
+    
+    // 포털 내부 구조
+    portal.element.innerHTML = `
+        <div class="portal-outer-ring"></div>
+        <div class="portal-inner-ring"></div>
+        <div class="portal-core"></div>
+        <div class="portal-particles"></div>
+    `;
+    
+    gameContainer.appendChild(portal.element);
+    
+    // 포털별 파티클 생성
+    createPortalParticlesForPortal(portal, particles);
+}
+
+// 특정 포털용 파티클 생성
+function createPortalParticlesForPortal(portal, particleArray) {
+    for (let i = 0; i < 15; i++) {
+        const particle = {
+            element: document.createElement('div'),
+            x: portal.x + portal.width/2,
+            y: portal.y + portal.height/2,
+            angle: (Math.PI * 2 * i) / 15,
+            radius: Math.random() * 30 + 20,
+            speed: Math.random() * 0.02 + 0.01,
+            opacity: Math.random() * 0.8 + 0.2,
+            portalRef: portal
+        };
+        
+        particle.element.className = 'portal-particle';
+        particle.element.style.opacity = particle.opacity;
+        gameContainer.appendChild(particle.element);
+        particleArray.push(particle);
+    }
+}
+
+// 포털 메시지 생성
+function createPortalMessage() {
+    if (document.getElementById('portalMessage')) return;
+    
+    const message = document.createElement('div');
+    message.id = 'portalMessage';
+    message.className = 'portal-message';
+    message.innerHTML = `
+        <div class="message-content">
+            <div class="message-icon">🌀</div>
+            <div class="message-text">Z키를 눌러 다음 맵으로 이동</div>
+        </div>
+    `;
+    
+    gameContainer.appendChild(message);
+}
+
+// 포털 메시지 제거
+function removePortalMessage() {
+    const message = document.getElementById('portalMessage');
+    if (message) {
+        message.remove();
+    }
+}
+
+// 포털 업데이트 함수 수정
+function updatePortal() {
+    updateSinglePortal(mapPortal, 'showPortalMessage');
+    updateSinglePortal(leftPortal, 'showLeftPortalMessage');
+}
+
+// 단일 포털 업데이트
+function updateSinglePortal(portal, messageFlag) {
+    if (!portal) return;
+    
+    // 카메라 오프셋 적용
+    const screenX = portal.x - cameraX;
+    portal.element.style.left = screenX + 'px';
+    
+    // 포털과 플레이어 거리 계산
+    const portalCenterX = portal.x + portal.width/2;
+    const portalCenterY = portal.y + portal.height/2;
+    const playerCenterX = playerX + playerSize/2;
+    const playerCenterY = playerY + playerSize/2;
+    
+    const distance = Math.sqrt(
+        Math.pow(portalCenterX - playerCenterX, 2) + 
+        Math.pow(portalCenterY - playerCenterY, 2)
+    );
+    
+    // 플레이어가 포털 근처에 있는지 확인 (100px 이내)
+    if (distance < 100) {
+        if (portal.direction === 'right' && !showPortalMessage) {
+            showPortalMessage = true;
+            createPortalMessage(portal.direction, portal.targetMap);
+        } else if (portal.direction === 'left' && !showLeftPortalMessage) {
+            showLeftPortalMessage = true;
+            createPortalMessage(portal.direction, portal.targetMap);
+        }
+        
+        portal.glowIntensity = Math.min(1, portal.glowIntensity + 0.02);
+    } else {
+        if (portal.direction === 'right' && showPortalMessage) {
+            showPortalMessage = false;
+            removePortalMessage();
+        } else if (portal.direction === 'left' && showLeftPortalMessage) {
+            showLeftPortalMessage = false;
+            removePortalMessage();
+        }
+        
+        portal.glowIntensity = Math.max(0.3, portal.glowIntensity - 0.02);
+    }
+    
+    // 포털 글로우 효과 적용
+    portal.element.style.filter = `brightness(${1 + portal.glowIntensity})`;
+}
+
+// 포털 파티클 업데이트
+function updatePortalParticles() {
+    portalParticles.forEach(particle => {
+        // 원형 궤도로 회전
+        particle.angle += particle.speed;
+        
+        const centerX = mapPortal.x + mapPortal.width/2;
+        const centerY = mapPortal.y + mapPortal.height/2;
+        
+        particle.x = centerX + Math.cos(particle.angle) * particle.radius;
+        particle.y = centerY + Math.sin(particle.angle) * particle.radius;
+        
+        // 카메라 오프셋 적용
+        const screenX = particle.x - cameraX;
+        particle.element.style.left = screenX + 'px';
+        particle.element.style.top = particle.y + 'px';
+        
+        // 투명도 애니메이션
+        particle.opacity = 0.2 + Math.sin(particle.angle * 3) * 0.3;
+        particle.element.style.opacity = Math.max(0.1, particle.opacity);
+    });
+}
+
+// 다음 맵으로 이동 함수
+function moveToNextMap() {
+    if (!showPortalMessage) return;
+    
+    // 포털 진입 효과
+    const portalEffect = document.createElement('div');
+    portalEffect.className = 'portal-transition-effect';
+    document.body.appendChild(portalEffect);
+    
+    // 효과음 (선택사항)
+    console.log('포털 진입!');
+    
+    setTimeout(() => {
+    // 맵 전환
+    initializeMap(targetMap);
+    portalEffect.remove();
+    
+    // 메시지 플래그 초기화
+    showPortalMessage = false;
+    showLeftPortalMessage = false;
+}, 1000);
+}
+    
+    // startGame 함수 수정
+function startGame() {
+    // 튜토리얼 맵으로 시작
+    initializeMap('tutorial');
+    gameLoop();
+}
     
     // 페이지 로드 시 초기화
     window.onload = function() {
