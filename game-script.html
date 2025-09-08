@@ -16,7 +16,7 @@ const mapHeight = 900;
 
 // 카메라 오프셋
 let cameraX = 0;
-    const playerSize = 40;
+    const playerSize = 64;
     const groundHeight = 90;
     
     // 플레이어 상태
@@ -34,6 +34,12 @@ let cameraX = 0;
     let bulletSpeed = 10;
     let fireRate = 300; // 밀리초
     
+    // 플레이어 체력 관련 변수
+let playerMaxHp = 100;
+let playerCurrentHp = 100;
+let isInvulnerable = false;
+let invulnerabilityTime = 0;
+let invulnerabilityDuration = 120; // 2초 (60fps 기준)
     // 주사위 관련 변수
     let diceArray = [];
     let diceShot = 0;
@@ -78,6 +84,7 @@ function gameLoop() {
     updateEnemies();
     updateDamageIndicators();  // monsters.html에 있는 함수 호출
     checkDiceEnemyCollisions();
+    updatePlayerInvulnerability(); // 새로 추가
     updatePlayerPosition();
     updateTutorialSigns();
     updateClouds();
@@ -250,11 +257,44 @@ if (dice.x > mapWidth || dice.y > screenHeight || dice.life <= 0 || dice.x < 0) 
         }
     }
     
+    
     // UI 업데이트
-    function updateUI() {
-        gameStats.textContent = `주사위: ${diceShot}발 | 총 데미지: ${totalDamage}`;
+function updateUI() {
+    gameStats.textContent = `주사위: ${diceShot}발 | 총 데미지: ${totalDamage}`;
+    updatePlayerHpBar();
+}
+
+// 플레이어 체력바 업데이트
+function updatePlayerHpBar() {
+    const hpFill = document.querySelector('.player-hp-fill');
+    const hpText = document.querySelector('.player-hp-text');
+    
+    if (hpFill && hpText) {
+        const hpPercent = (playerCurrentHp / playerMaxHp) * 100;
+        hpFill.style.width = hpPercent + '%';
+        hpText.textContent = `${playerCurrentHp}/${playerMaxHp}`;
     }
-   
+}
+
+// 플레이어 무적 시간 처리
+function updatePlayerInvulnerability() {
+    if (isInvulnerable) {
+        invulnerabilityTime--;
+        
+        // 무적 시간 중 깜빡임 효과
+        if (invulnerabilityTime % 12 < 6) {
+            player.classList.add('player-invulnerable');
+        } else {
+            player.classList.remove('player-invulnerable');
+        }
+        
+        // 무적 시간 종료
+        if (invulnerabilityTime <= 0) {
+            isInvulnerable = false;
+            player.classList.remove('player-invulnerable');
+        }
+    }
+}
     // 구름 생성 함수
 function createClouds() {
     const cloudTypes = ['cloud-small', 'cloud-medium', 'cloud-large'];
@@ -812,6 +852,26 @@ function updatePlayerPosition() {
     
     player.style.left = Math.round(screenX) + 'px';
     player.style.top = Math.round(playerY) + 'px';
+    
+    // 픽셀 아트 캐릭터 클래스 적용
+if (!player.classList.contains('pixel-knight')) {
+    player.classList.add('pixel-knight');
+}
+    
+    // 움직임 애니메이션
+    if (Math.abs(velocityX) > 0.5 && isOnGround) {
+        player.classList.add('player-walking');
+    } else {
+        player.classList.remove('player-walking');
+    }
+    
+    // 점프 애니메이션
+    if (!isOnGround) {
+        player.classList.add('player-jumping');
+    } else {
+        player.classList.remove('player-jumping');
+    }
+    
     coordinates.textContent = `X: ${Math.round(playerX)}, Y: ${Math.round(playerY)} | Camera: ${Math.round(cameraX)}`;
 }
 
