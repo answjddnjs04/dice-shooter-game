@@ -6,8 +6,8 @@
     let gameStats = document.getElementById('gameStats');
     
     // 게임 설정
-    const gameWidth = window.innerWidth;
-    const gameHeight = window.innerHeight;
+let gameWidth = window.innerWidth;
+let gameHeight = window.innerHeight;
     const playerSize = 40;
     const groundHeight = 80;
     
@@ -31,6 +31,10 @@
     let diceShot = 0;
     let totalDamage = 0;
     let lastFireTime = 0;
+
+    // 적 관련 변수 (새로 추가)
+    let enemies = [];
+    let damageIndicators = [];
     
     // 입력 상태
     let keys = {
@@ -45,25 +49,36 @@
 };
     
     let isOnGround = false;
-    
-    // 게임 루프
+    //게임 루프
     function gameLoop() {
-        handleInput();
-        updatePhysics();
-        updateDice();
-        updatePlayerPosition();
-        updateUI();
-        requestAnimationFrame(gameLoop);
-    }
+    handleInput();
+    updatePhysics();
+    updateDice();
+    updateEnemies();          // 추가
+    updateDamageIndicators(); // 추가
+    checkDiceEnemyCollisions(); // 추가
+    updatePlayerPosition();
+    updateUI();
+    requestAnimationFrame(gameLoop);
+}
     
     // 입력 처리
-    function handleInput() {
-    // 좌우 이동 (A, D키만)
+    // 입력 처리
+function handleInput() {
+    // 좌우 이동 (땅에서 더 빠르게)
     if (keys.left) {
-        velocityX -= moveSpeed * 0.1;
+        if (isOnGround) {
+            velocityX -= moveSpeed * 1.0; // 땅에서 더 빠름
+        } else {
+            velocityX -= moveSpeed * 0.1;  // 공중에서는 기존대로
+        }
     }
     if (keys.right) {
-        velocityX += moveSpeed * 0.1;
+        if (isOnGround) {
+            velocityX += moveSpeed * 0.15; // 땅에서 더 빠름
+        } else {
+            velocityX += moveSpeed * 0.1;  // 공중에서는 기존대로
+        }
     }
     
     // 점프 (땅에 있을 때만)
@@ -111,7 +126,117 @@
     
     lastFireTime = currentTime;
     diceShot++;
+
+
+// 허수아비 생성 함수 (기존 함수들 뒤에 추가)
+function createTrainingDummy() {
+    const dummy = {
+        element: document.createElement('div'),
+        x: gameWidth - 200,
+        y: gameHeight - groundHeight - 60,
+        width: 40,
+        height: 60,
+        maxHp: 1000,
+        currentHp: 1000,
+        type: 'dummy'
+    };
     
+    dummy.element.className = 'training-dummy';
+    dummy.element.style.left = dummy.x + 'px';
+    dummy.element.style.top = dummy.y + 'px';
+    
+    const hpBar = document.createElement('div');
+    hpBar.className = 'enemy-hp-bar';
+    hpBar.innerHTML = `
+        <div class="hp-bar-background">
+            <div class="hp-bar-fill"></div>
+            <div class="hp-bar-text">${dummy.currentHp}/${dummy.maxHp}</div>
+        </div>
+    `;
+    dummy.element.appendChild(hpBar);
+    
+    gameContainer.appendChild(dummy.element);
+    enemies.push(dummy);
+}
+
+// 적 업데이트 함수
+function updateEnemies() {
+    enemies.forEach(enemy => {
+        if (enemy.type === 'dummy') {
+            const hpFill = enemy.element.querySelector('.hp-bar-fill');
+            const hpText = enemy.element.querySelector('.hp-bar-text');
+            
+            const hpPercent = (enemy.currentHp / enemy.maxHp) * 100;
+            hpFill.style.width = hpPercent + '%';
+            hpText.textContent = `${enemy.currentHp}/${enemy.maxHp}`;
+        }
+    });
+}
+
+// 데미지 표시기 생성
+function createDamageIndicator(x, y, diceValue) {
+    const indicator = {
+        element: document.createElement('div'),
+        x: x,
+        y: y - 30,
+        life: 180,
+        diceValue: diceValue
+    };
+    
+    indicator.element.className = 'damage-indicator';
+    indicator.element.textContent = diceValue;
+    indicator.element.style.left = indicator.x + 'px';
+    indicator.element.style.top = indicator.y + 'px';
+    
+    gameContainer.appendChild(indicator.element);
+    damageIndicators.push(indicator);
+}
+
+// 데미지 표시기 업데이트
+function updateDamageIndicators() {
+    for (let i = damageIndicators.length - 1; i >= 0; i--) {
+        const indicator = damageIndicators[i];
+        
+        indicator.life--;
+        
+        if (indicator.life < 60) {
+            const opacity = indicator.life / 60;
+            indicator.element.style.opacity = opacity;
+        }
+        
+        if (indicator.life <= 0) {
+            indicator.element.remove();
+            damageIndicators.splice(i, 1);
+        }
+    }
+}
+
+// 주사위와 적 충돌 검사
+function checkDiceEnemyCollisions() {
+    for (let i = diceArray.length - 1; i >= 0; i--) {
+        const dice = diceArray[i];
+        
+        for (let j = 0; j < enemies.length; j++) {
+            const enemy = enemies[j];
+            
+            if (dice.x < enemy.x + enemy.width &&
+                dice.x + 25 > enemy.x &&
+                dice.y < enemy.y + enemy.height &&
+                dice.y + 25 > enemy.y) {
+                
+                enemy.currentHp -= dice.value;
+                if (enemy.currentHp < 0) enemy.currentHp = 0;
+                
+                createDamageIndicator(enemy.x + enemy.width / 2, enemy.y, dice.value);
+                
+                dice.element.remove();
+                diceArray.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
+
     // 주사위 생성
     const dice = {
         element: document.createElement('div'),
@@ -187,12 +312,12 @@
         velocityY += gravity;
         
         // 공기 저항
-        if (!isOnGround) {
-            velocityX *= airResistance;
-        } else {
-            // 땅에서의 마찰
-            velocityX *= friction;
-        }
+if (!isOnGround) {
+    velocityX *= airResistance;
+} else {
+    // 땅에서의 마찰
+    velocityX *= friction;
+}
         
         // 최대 속도 제한
         const maxVelocityX = moveSpeed;
@@ -324,9 +449,10 @@
 });
     
     // 화면 크기 변경 대응
-    window.addEventListener('resize', function() {
-        gameWidth = window.innerWidth;
-        gameHeight = window.innerHeight;
+window.addEventListener('resize', function() {
+    gameWidth = window.innerWidth;
+    gameHeight = window.innerHeight;
+});
     });
     
     // 구글 시트 연동 함수들
@@ -388,9 +514,10 @@
     
     // 게임 시작
     function startGame() {
-        updatePlayerPosition();
-        gameLoop();
-    }
+    updatePlayerPosition();
+    createTrainingDummy(); // 추가
+    gameLoop();
+}
     
     // 페이지 로드 시 초기화
     window.onload = function() {
