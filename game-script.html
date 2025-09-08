@@ -89,7 +89,8 @@ function gameLoop() {
     updateTutorialSigns();
     updateClouds();
     updatePortal();           
-    updatePortalParticles();  
+    updatePortalParticles();
+    checkPlayerEnemyCollisions();  
     updateUI();
     requestAnimationFrame(gameLoop);
 }
@@ -293,6 +294,26 @@ function updatePlayerInvulnerability() {
             isInvulnerable = false;
             player.classList.remove('player-invulnerable');
         }
+    }
+}
+
+// 플레이어가 데미지를 받는 함수
+function takeDamage(damage) {
+    if (isInvulnerable) return; // 무적 상태면 데미지 안받음
+    
+    playerCurrentHp -= damage;
+    if (playerCurrentHp < 0) playerCurrentHp = 0;
+    
+    // 무적 상태 시작
+    isInvulnerable = true;
+    invulnerabilityTime = invulnerabilityDuration;
+    
+    console.log(`플레이어가 ${damage} 데미지를 받았습니다! 현재 체력: ${playerCurrentHp}/${playerMaxHp}`);
+    
+    // 플레이어가 죽었는지 확인
+    if (playerCurrentHp <= 0) {
+        console.log("플레이어가 죽었습니다!");
+        // 여기에 게임 오버 로직 추가 가능
     }
 }
     // 구름 생성 함수
