@@ -86,17 +86,10 @@ let showLeftPortalMessage = false;
     updateUI();
     requestAnimationFrame(gameLoop);
 }
-    
-    // 입력 처리
-function handleInput() {
-    // 디버깅용 - keys 상태 확인
-    if (keys.left || keys.right || keys.jump || keys.shoot || keys.arrowLeft || keys.arrowRight || keys.arrowUp || keys.arrowDown) {
-        console.log('Keys active:', keys);
-    }
-    
+    //입력 처리
+    function handleInput() {
     // 좌우 이동 (땅에서 더 빠르게)
     if (keys.left) {
-        console.log('Moving left!'); // 디버깅용
         if (isOnGround) {
             velocityX -= moveSpeed * 1.0;
         } else {
@@ -104,7 +97,6 @@ function handleInput() {
         }
     }
     if (keys.right) {
-        console.log('Moving right!'); // 디버깅용
         if (isOnGround) {
             velocityX += moveSpeed * 0.15;
         } else {
@@ -114,14 +106,12 @@ function handleInput() {
     
     // 점프 (땅에 있을 때만)
     if (keys.jump && isOnGround) {
-        console.log('Jumping!'); // 디버깅용
         velocityY = -jumpPower;
         isOnGround = false;
     }
     
     // 주사위 발사 (S키)
     if (keys.shoot) {
-        console.log('Shooting!'); // 디버깅용
         fireDice(); // 기본 우측 발사
     }
     
@@ -712,30 +702,45 @@ function updateParticleArray(particleArray) {
     });
 }
 
-// 다음 맵으로 이동 함수 수정
+// 다음 맵으로 이동 함수 수정 (상세한 로그 포함)
 function moveToNextMap() {
+    console.log('=== moveToNextMap 함수 시작 ===');
+    console.log('showPortalMessage:', showPortalMessage);
+    console.log('showLeftPortalMessage:', showLeftPortalMessage);
+    console.log('mapPortal:', mapPortal);
+    console.log('leftPortal:', leftPortal);
+    
     let targetMap = null;
     
     // 어느 포털을 사용하는지 확인
     if (showPortalMessage && mapPortal) {
         targetMap = mapPortal.targetMap;
+        console.log('우측 포털 사용, targetMap:', targetMap);
     } else if (showLeftPortalMessage && leftPortal) {
         targetMap = leftPortal.targetMap;
+        console.log('좌측 포털 사용, targetMap:', targetMap);
     }
     
-    if (!targetMap) return;
+    console.log('최종 targetMap:', targetMap);
+    
+    if (!targetMap) {
+        console.log('targetMap이 없어서 함수 종료');
+        return;
+    }
     
     // 포털 진입 효과
     const portalEffect = document.createElement('div');
     portalEffect.className = 'portal-transition-effect';
     document.body.appendChild(portalEffect);
     
-    console.log(`${targetMap} 맵으로 이동!`);
+    console.log(`${targetMap} 맵으로 이동 시작!`);
     
     // targetMap을 setTimeout 안에서 사용할 수 있도록 저장
     const nextMap = targetMap;
+    console.log('nextMap 변수에 저장:', nextMap);
     
     setTimeout(() => {
+        console.log('setTimeout 실행, nextMap:', nextMap);
         // 맵 전환
         initializeMap(nextMap);
         portalEffect.remove();
@@ -743,6 +748,7 @@ function moveToNextMap() {
         // 메시지 플래그 초기화
         showPortalMessage = false;
         showLeftPortalMessage = false;
+        console.log('맵 전환 완료');
     }, 1000);
 }
 
@@ -1234,31 +1240,7 @@ function updatePortalParticles() {
         particle.opacity = 0.2 + Math.sin(particle.angle * 3) * 0.3;
         particle.element.style.opacity = Math.max(0.1, particle.opacity);
     });
-}
-
-// 다음 맵으로 이동 함수
-function moveToNextMap() {
-    if (!showPortalMessage) return;
-    
-    // 포털 진입 효과
-    const portalEffect = document.createElement('div');
-    portalEffect.className = 'portal-transition-effect';
-    document.body.appendChild(portalEffect);
-    
-    // 효과음 (선택사항)
-    console.log('포털 진입!');
-    
-    setTimeout(() => {
-    // 맵 전환
-    initializeMap(targetMap);
-    portalEffect.remove();
-    
-    // 메시지 플래그 초기화
-    showPortalMessage = false;
-    showLeftPortalMessage = false;
-}, 1000);
-}
-    
+}    
     // startGame 함수 수정
 function startGame() {
     // 튜토리얼 맵으로 시작
