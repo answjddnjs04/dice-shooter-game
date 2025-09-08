@@ -204,4 +204,24 @@ function updateDamageIndicators() {
         }
     }
 }
+// 플레이어와 적 충돌 검사
+function checkPlayerEnemyCollisions() {
+    // 무적 상태이면 충돌 검사 안함
+    if (isInvulnerable) return;
+    
+    enemies.forEach(enemy => {
+        // 슬라임만 데미지를 줌 (허수아비는 안전함)
+        if (enemy.type !== 'slime') return;
+        
+        // 충돌 박스 검사
+        if (playerX < enemy.x + enemy.width &&
+            playerX + playerSize > enemy.x &&
+            playerY < enemy.y + enemy.height &&
+            playerY + playerSize > enemy.y) {
+            
+            // 플레이어가 데미지를 받음
+            takeDamage(enemy.damage);
+        }
+    });
+}
 </script>
