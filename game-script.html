@@ -304,6 +304,9 @@ function takeDamage(damage) {
     playerCurrentHp -= damage;
     if (playerCurrentHp < 0) playerCurrentHp = 0;
     
+    // 데미지 표시기 생성
+    createPlayerDamageIndicator(damage);
+    
     // 무적 상태 시작
     isInvulnerable = true;
     invulnerabilityTime = invulnerabilityDuration;
