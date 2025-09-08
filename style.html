@@ -1,0 +1,169 @@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #87CEEB;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+        min-height: 100vh;
+        overflow: hidden;
+    }
+    
+    #gameContainer {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #F0F8FF 100%);
+        border: none;
+        margin: 0;
+        overflow: hidden;
+    }
+    
+    #player {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background: radial-gradient(circle, #FFD700, #FFA500);
+        border-radius: 50%;
+        border: 3px solid #FF8C00;
+        z-index: 10;
+        transition: none;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    }
+    
+    #ground {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: linear-gradient(to bottom, #8FBC8F, #228B22);
+        border-top: 4px solid #006400;
+    }
+    
+    #controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+    }
+    
+    .button {
+        background: linear-gradient(to bottom, #4CAF50, #45a049);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 2px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    
+    .button:hover {
+        background: linear-gradient(to bottom, #45a049, #3d8b40);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+    }
+    
+    .button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #coordinates {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(50,50,50,0.8));
+        color: #FFD700;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 100;
+        border: 1px solid rgba(255,215,0,0.3);
+        box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+    }
+    
+    #gameStats {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(50,50,50,0.8));
+        color: #FFD700;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 100;
+        border: 1px solid rgba(255,215,0,0.3);
+        box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+    }
+    
+    #gameControls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(50,50,50,0.8));
+        color: #FFD700;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 100;
+        border: 1px solid rgba(255,215,0,0.3);
+        box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+        text-align: center;
+    }
+    
+    .dice {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        background-color: #FFFFFF;
+        border: 2px solid #333333;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333333;
+        z-index: 5;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        animation: rollDice 0.2s infinite linear;
+    }
+    
+    @keyframes rollDice {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(90deg); }
+        50% { transform: rotate(180deg); }
+        75% { transform: rotate(270deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .dice-hit {
+        animation: diceHit 0.5s ease-out;
+    }
+    
+    @keyframes diceHit {
+        0% { 
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+        50% { 
+            transform: scale(1.5) rotate(180deg);
+            opacity: 0.8;
+        }
+        100% { 
+            transform: scale(0) rotate(360deg);
+            opacity: 0;
+        }
+    }
+</style>
