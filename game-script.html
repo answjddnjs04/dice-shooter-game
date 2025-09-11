@@ -74,6 +74,13 @@ let showLeftPortalMessage = false;
     arrowUp: false,
     arrowDown: false
 };
+
+// 인벤토리 관련 변수
+let inventoryOpen = false;
+let inventory = {
+    diceCollected: 0,
+    maxSlots: 18
+};
     
     let isOnGround = false;
     //게임 루프
@@ -263,6 +270,140 @@ if (dice.x > mapWidth || dice.y > screenHeight || dice.life <= 0 || dice.x < 0) 
 function updateUI() {
     gameStats.textContent = `주사위: ${diceShot}발 | 총 데미지: ${totalDamage}`;
     updatePlayerHpBar();
+    updateInventoryDisplay(); // 이 줄 추가
+}
+
+// 인벤토리 UI 생성 (먼저 정의)
+function createInventoryUI() {
+    const inventoryElement = document.createElement('div');
+    inventoryElement.id = 'inventory';
+    inventoryElement.innerHTML = `
+    <!-- 유리구슬 (가방 밖에 독립적으로) -->
+    <div class="orb-slot-container">
+        <div class="glass-orb" id="orb-slot">
+            <!-- 유리구슬 안의 정육면체 전개도 슬롯들 -->
+            <div class="cube-net-container">
+                <div class="cube-slot center" id="cube-slot-center"></div>
+                <div class="cube-slot top" id="cube-slot-top"></div>
+                <div class="cube-slot bottom" id="cube-slot-bottom"></div>
+                <div class="cube-slot left" id="cube-slot-left"></div>
+                <div class="cube-slot right" id="cube-slot-right"></div>
+                <div class="cube-slot far-bottom" id="cube-slot-far-bottom"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 가방 컨테이너 -->
+    <div class="inventory-content">
+        <div class="inventory-bottom-section">
+            <div class="inventory-bag">
+                <div class="bag-section">
+                    <div class="inventory-grid" id="inventory-grid-1">
+                        <!-- 첫 번째 가방 구역 -->
+                    </div>
+                </div>
+            </div>
+            <div class="inventory-bag">
+                <div class="bag-section">
+                    <div class="inventory-grid" id="inventory-grid-2">
+                        <!-- 두 번째 가방 구역 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+    
+    gameContainer.appendChild(inventoryElement);
+    
+    // 첫 번째 가방 구역 슬롯 생성
+    const grid1 = document.getElementById('inventory-grid-1');
+    for (let i = 0; i < 9; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        slot.id = `inventory-slot-${i}`;
+        grid1.appendChild(slot);
+    }
+    
+    // 두 번째 가방 구역 슬롯 생성
+    const grid2 = document.getElementById('inventory-grid-2');
+    for (let i = 9; i < 18; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        slot.id = `inventory-slot-${i}`;
+        grid2.appendChild(slot);
+    }
+}
+
+// 인벤토리 토글 함수
+function toggleInventory() {
+    const inventoryElement = document.getElementById('inventory');
+    
+    if (inventoryOpen) {
+        inventoryElement.style.display = 'none';
+        inventoryOpen = false;
+    } else {
+        if (!inventoryElement) {
+            createInventoryUI();
+        }
+        document.getElementById('inventory').style.display = 'block';
+        updateInventoryDisplay();
+        inventoryOpen = true;
+    }
+}
+
+// 인벤토리 표시 업데이트
+function updateInventoryDisplay() {
+    if (!inventoryOpen) return;
+    
+    // 예시 아이템 표시 (주사위)
+    if (diceShot > 0) {
+        const firstSlot = document.getElementById('inventory-slot-0');
+        if (firstSlot) {
+            firstSlot.className = 'inventory-slot occupied';
+            firstSlot.innerHTML = `
+                <div class="inventory-item">🎲</div>
+                <div class="inventory-item-count">${Math.min(diceShot, 99)}</div>
+            `;
+        }
+    }
+    
+    // 유리구슬 슬롯 예시 (총 데미지가 50 이상일 때)
+    if (totalDamage >= 50) {
+        const orbSlot = document.getElementById('orb-slot');
+        const orbItem = document.getElementById('orb-item');
+        if (orbSlot && orbItem) {
+            orbSlot.className = 'glass-orb occupied';
+            orbItem.style.display = 'block';
+            orbItem.textContent = '💎';
+        }
+    }
+    
+    // 십자가 슬롯 예시 (주사위 10발 이상 발사시)
+    if (diceShot >= 10) {
+        const centerSlot = document.getElementById('cross-slot-center');
+        if (centerSlot) {
+            centerSlot.innerHTML = '⚔️';
+            centerSlot.style.fontSize = '16px';
+        }
+    }
+}
+
+// 인벤토리 표시 업데이트
+function updateInventoryDisplay() {
+    if (!inventoryOpen) return;
+    
+    // 예시 아이템 표시 (주사위)
+    if (diceShot > 0) {
+        const firstSlot = document.getElementById('inventory-slot-0');
+        if (firstSlot) {
+            firstSlot.className = 'inventory-slot occupied';
+            firstSlot.innerHTML = `
+                <div class="inventory-item">🎲</div>
+                <div class="inventory-item-count">${Math.min(diceShot, 99)}</div>
+            `;
+        }
+    }
 }
 
 // 플레이어 체력바 업데이트
@@ -1005,6 +1146,10 @@ case 'z':
                 keys.arrowDown = true;
                 event.preventDefault();
                 break;
+                case 'g':
+    toggleInventory();
+    event.preventDefault();
+    break;
         }
     });
     
