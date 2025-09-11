@@ -77,3 +77,51 @@ function saveGameStats(score, bulletsShot) {
   
   return 'stats saved';
 }
+// 몬스터 데이터를 구글 시트에서 가져오는 함수
+function getMonsterData() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('MonsterData');
+  
+  // 몬스터 타입별 데이터 가져오기
+  const monsterTypes = {};
+  
+  // 허수아비 데이터
+  monsterTypes.dummy = {
+    width: sheet.getRange('B2').getValue(),
+    height: sheet.getRange('B3').getValue(),
+    maxHp: sheet.getRange('B4').getValue(),
+    speed: sheet.getRange('B5').getValue(),
+    damage: sheet.getRange('B6').getValue()
+  };
+  
+  // 슬라임 데이터
+  monsterTypes.slime = {
+    width: sheet.getRange('D2').getValue(),
+    height: sheet.getRange('D3').getValue(),
+    maxHp: sheet.getRange('D4').getValue(),
+    speed: sheet.getRange('D5').getValue(),
+    damage: sheet.getRange('D6').getValue()
+  };
+  
+  return monsterTypes;
+}
+
+// 몬스터 데이터를 구글 시트에 저장하는 함수
+function saveMonsterData(monsterType, data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('MonsterData');
+  
+  if (monsterType === 'dummy') {
+    sheet.getRange('B2').setValue(data.width);
+    sheet.getRange('B3').setValue(data.height);
+    sheet.getRange('B4').setValue(data.maxHp);
+    sheet.getRange('B5').setValue(data.speed);
+    sheet.getRange('B6').setValue(data.damage);
+  } else if (monsterType === 'slime') {
+    sheet.getRange('D2').setValue(data.width);
+    sheet.getRange('D3').setValue(data.height);
+    sheet.getRange('D4').setValue(data.maxHp);
+    sheet.getRange('D5').setValue(data.speed);
+    sheet.getRange('D6').setValue(data.damage);
+  }
+  
+  return 'saved';
+}
